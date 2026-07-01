@@ -1,174 +1,156 @@
-<script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-
-        // Подгружаем реальные данные из Telegram, если они доступны
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Monkey Cases Premium</title>
+    <script src="https://telegram.org"></script>
+    <style>
+        :root {
+            --bg-color: #0c0f17;
+            --card-color: #161b26;
+            --accent-color: #ffb703;
+            --text-color: #ffffff;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .profile-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--card-color);
+            padding: 12px 16px;
+            border-radius: 16px;
+            border: 1px solid #232c3f;
+            margin-bottom: 15px;
+        }
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 45px; height: 45px; border-radius: 50%; background: #2c3a57; border: 2px solid var(--accent-color); object-fit: cover; }
+        .username { font-weight: bold; font-size: 16px; }
+        .balance { background: #1e2638; padding: 6px 12px; border-radius: 20px; font-weight: bold; color: #00f5d4; display: flex; align-items: center; gap: 5px; border: 1px solid #2d3954; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; background: var(--card-color); border: 1px solid #232c3f; color: #8a99ad; padding: 10px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        .tab-btn.active { background: var(--accent-color); color: #000; border-color: var(--accent-color); }
+        .cases-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .case-card { background: var(--card-color); border: 2px solid #232c3f; border-radius: 16px; padding: 12px 8px; cursor: pointer; text-align: center; transition: 0.2s; position: relative; }
+        .case-card.active { border-color: var(--accent-color); background: #1d2536; }
+        .case-card.hell { border-color: #5a1818; }
+        .case-card.hell.active { border-color: #ff3333; background: #2d1212; box-shadow: 0 0 15px rgba(255,51,51,0.2); }
+        .case-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; color: #a0aec0; }
+        .case-card img { width: 100%; height: 70px; object-fit: contain; margin: 5px 0; }
+        .case-price { font-size: 13px; font-weight: bold; color: #00f5d4; margin-top: 5px; }
+        .roulette-wrapper { position: relative; width: 100%; max-width: 420px; height: 130px; margin: 20px auto; background: #090c12; border: 2px solid #232c3f; border-radius: 20px; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.6); display: none; }
+        .roulette-wrapper::before { content: ''; position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: 4px; height: 100%; background: #ff0055; z-index: 10; box-shadow: 0 0 10px #ff0055; }
+        .roulette-line { display: flex; position: absolute; left: 0; top: 15px; height: 100px; transform: translateX(0); }
+        .prize-item { width: 100px; height: 100px; background: var(--card-color); border: 1px solid #232c3f; margin: 0 4px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; box-sizing: border-box; padding: 6px; text-align: center; font-weight: bold; }
+        .prize-item img { width: 55px; height: 55px; object-fit: contain; margin-bottom: 6px; }
+        .preview-container { background: var(--card-color); border: 1px solid #232c3f; border-radius: 20px; padding: 15px; margin-top: 15px; }
+            <body>
+    <div class="profile-container">
+        <div class="user-info">
+            <img src="https://ibb.co" id="userAvatar" class="avatar" alt="Ava">
+            <span id="userName" class="username">Игрок Обезьяна</span>
+        </div>
+        <div class="balance"><span id="balanceValue">1000</span> ⭐️</div>
+    </div>
+    <div class="tabs">
+        <button class="tab-btn active" id="tabCases" onclick="switchTab('cases')">КЕЙСЫ</button>
+        <button class="tab-btn" id="tabInv" onclick="switchTab('inventory')">ИНВЕНТАРЬ</button>
+    </div>
+    <div id="casesView">
+        <div class="cases-grid">
+            <div class="case-card active" onclick="selectCase('cry_monkey', 59)">
+                <div class="case-title">Cry Monkey</div>
+                <img src="https://ibb.co" alt="Cry">
+                <div class="case-price">59 ⭐️</div>
+            </div>
+            <div class="case-card" onclick="selectCase('monkey_case', 111)">
+                <div class="case-title">Monkey Case</div>
+                <img src="https://ibb.co" alt="Gold">
+                <div class="case-price">111 ⭐️</div>
+            </div>
+            <div class="case-card hell" onclick="selectCase('hell_monkey', 200)">
+                <div class="case-title">Hell Monkey</div>
+                <img src="https://ibb.co" alt="Hell">
+                <div class="case-price">200 ⭐️</div>
+            </div>
+        </div>
+        <div class="roulette-wrapper" id="rouletteWrapper"><div class="roulette-line" id="rouletteLine"></div></div>
+        <div class="action-container"><button class="btn-main" id="openBtn" onclick="openCaseProcess()">ОТКРЬIТЬ ЗА <span id="btnPrice">59</span> ⭐️</button></div>
+        <div class="preview-container"><div class="preview-title">Содержимое кейса:</div><div class="preview-items" id="previewItems"></div></div>
+    </div>
+    <div id="inventoryView"><div class="inventory-grid" id="inventoryGrid"><div class="empty-inv">Ваш инвентарь пуст</div></div></div>
+      <script>
+        const tg = window.Telegram.WebApp; tg.expand();
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             document.getElementById('userName').innerText = tg.initDataUnsafe.user.first_name;
-            if(tg.initDataUnsafe.user.photo_url) {
-                document.getElementById('userAvatar').src = tg.initDataUnsafe.user.photo_url;
-            }
+            if(tg.initDataUnsafe.user.photo_url) document.getElementById('userAvatar').src = tg.initDataUnsafe.user.photo_url;
         }
-
-        // Локальное состояние игрока
-        let userBalance = 1000;
-        let userInventory = [];
-        let activeCase = 'cry_monkey';
-        let activePrice = 59;
-
-        // База всех предметов (прямые ссылки на ваши картинки)
+        let userBalance = 1000; let userInventory = []; let activeCase = 'cry_monkey'; let activePrice = 59;
         const items = {
-            m5:    { n: "5 Звезд",       i: "https://ibb.co", isMoney: true,  v: 5 },
-            m20:   { n: "20 Звезд",      i: "https://ibb.co", isMoney: true,  v: 20 },
-            m30:   { n: "30 Звезд",      i: "https://ibb.co", isMoney: true,  v: 30 },
-            m50:   { n: "50 Звезд",      i: "https://ibb.co", isMoney: true,  v: 50 },
-            m70:   { n: "70 Звезд",      i: "https://ibb.co", isMoney: true,  v: 70 },
-            m100:  { n: "100 Звезд",     i: "https://ibb.co", isMoney: true,  v: 100 },
-            m150:  { n: "150 Звезд",     i: "https://ibb.co", isMoney: true,  v: 150 },
-            m190:  { n: "190 Звезд",     i: "https://ibb.co", isMoney: true,  v: 190 },
-            m200:  { n: "200 Звезд",     i: "https://ibb.co", isMoney: true,  v: 200 },
-            m500:  { n: "500 Звезд",     i: "https://ibb.co", isMoney: true,  v: 500 },
-            nft1:  { n: "NFT Monkey 1",  i: "https://ibb.co" },
-            nft2:  { n: "NFT Monkey 2",  i: "https://ibb.co" },
-            nft3:  { n: "NFT Monkey 3",  i: "https://ibb.co" },
-            
-            roza:  { n: "Роза",          i: "https://ibb.co" },
-            buket: { n: "Букет цветов",   i: "https://ibb.co" },
-            raketa:{ n: "Ракета",        i: "https://ibb.co" },
-            
-            ice:   { n: "Мороженое",     i: "https://flaticon.com" },
-            torch: { n: "Факел",         i: "https://flaticon.com" },
-            noodle:{ n: "Лапша",         i: "https://flaticon.com" },
-            spin:  { n: "Free Spin",     i: "https://flaticon.com" }
+            m5: { n: "5 Звезд", i: "https://ibb.co", isMoney: true, v: 5 },
+            m20: { n: "20 Звезд", i: "https://ibb.co", isMoney: true, v: 20 },
+            m30: { n: "30 Звезд", i: "https://ibb.co", isMoney: true, v: 30 },
+            m50: { n: "50 Звезд", i: "https://ibb.co", isMoney: true, v: 50 },
+            m70: { n: "70 Звезд", i: "https://ibb.co", isMoney: true, v: 70 },
+            m100: { n: "100 Звезд", i: "https://ibb.co", isMoney: true, v: 100 },
+            m150: { n: "150 Звезд", i: "https://ibb.co", isMoney: true, v: 150 },
+            m190: { n: "190 Звезд", i: "https://ibb.co", isMoney: true, v: 190 },
+            m200: { n: "200 Звезд", i: "https://ibb.co", isMoney: true, v: 200 },
+            m500: { n: "500 Звезд", i: "https://ibb.co", isMoney: true, v: 500 },
+              nft1: { n: "NFT Monkey 1", i: "https://ibb.co" },
+            nft2: { n: "NFT Monkey 2", i: "https://ibb.co" },
+            nft3: { n: "NFT Monkey 3", i: "https://ibb.co" },
+            roza: { n: "Роза", i: "https://ibb.co" },
+            buket: { n: "Букет цветов", i: "https://ibb.co" },
+            raketa:{ n: "Ракета", i: "https://ibb.co" },
+            ice: { n: "Мороженое", i: "https://flaticon.com" },
+            torch: { n: "Факел", i: "https://flaticon.com" },
+            noodle:{ n: "Лапша", i: "https://flaticon.com" },
+            spin: { n: "Free Spin", i: "https://flaticon.com" }
         };
-
-        // Настройка пулов выпадающих предметов и их точных шансов
-        const casePools = {
-            cry_monkey: [
-                { id: 'm5',    p: 13 }, { id: 'm20',   p: 10 }, { id: 'm30',   p: 9 }, { id: 'm70',   p: 7 },
-                { id: 'roza',  p: 13 }, { id: 'raketa', p: 3 }
-            ],
-            monkey_case: [
-                { id: 'ice',   p: 7 }, { id: 'torch',  p: 7 }, { id: 'noodle', p: 6 },
-                { id: 'm50',   p: 10 }, { id: 'm100',  p: 15 }, { id: 'm150',  p: 17 }, { id: 'm200',  p: 13 },
-                { id: 'nft1',  p: 2 }, { id: 'nft2',   p: 2 }, { id: 'nft3',   p: 2 },
-                { id: 'buket', p: 5 }
-            ],
-            hell_monkey: [
-                { id: 'spin',  p: 10 }, { id: 'ice',   p: 10 }, { id: 'torch',  p: 17 }, { id: 'noodle', p: 12 },
-                { id: 'm190',  p: 12 }, { id: 'm100',  p: 15 }, { id: 'm150',  p: 17 }, { id: 'm200',  p: 13 }, { id: 'm500',  p: 1 }
-            ]
+                 const casePools = {
+            cry_monkey: [ { id: 'm5', p: 13 }, { id: 'm20', p: 10 }, { id: 'm30', p: 9 }, { id: 'm70', p: 7 }, { id: 'roza', p: 13 }, { id: 'raketa', p: 3 } ],
+            monkey_case: [ { id: 'ice', p: 7 }, { id: 'torch', p: 7 }, { id: 'noodle', p: 6 }, { id: 'm50', p: 10 }, { id: 'm100', p: 15 }, { id: 'm150', p: 17 }, { id: 'm200', p: 13 }, { id: 'nft1', p: 2 }, { id: 'nft2', p: 2 }, { id: 'nft3', p: 2 }, { id: 'buket', p: 5 } ],
+            hell_monkey: [ { id: 'spin', p: 10 }, { id: 'ice', p: 10 }, { id: 'torch', p: 17 }, { id: 'noodle', p: 12 }, { id: 'm190', p: 12 }, { id: 'm100', p: 15 }, { id: 'm150', p: 17 }, { id: 'm200', p: 13 }, { id: 'm500', p: 1 } ]
         };
-    function selectCase(type, price) {
-            activeCase = type;
-            activePrice = price;
-            document.getElementById('btnPrice').innerText = price;
-            document.querySelectorAll('.case-card').forEach(c => c.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            updatePreview();
-        }
-
-        function updatePreview() {
-            const container = document.getElementById('previewItems');
-            container.innerHTML = '';
-            casePools[activeCase].forEach(slot => {
-                const itemData = items[slot.id] || { n: slot.id.replace('m',' ') + ' ⭐️', i: items.m5.i };
-                const div = document.createElement('div');
-                div.className = 'preview-item';
-                div.innerHTML = <img src="${itemData.i}"><div>${itemData.n}</div><div style="color:#718096;font-size:8px;margin-top:2px;">${slot.p}%</div>;
-                container.appendChild(div);
-            });
-        }
-
-        function switchTab(tab) {
-            document.getElementById('tabCases').classList.toggle('active', tab === 'cases');
-            document.getElementById('tabInv').classList.toggle('active', tab === 'inventory');
-            document.getElementById('casesView').style.display = tab === 'cases' ? 'block' : 'none';
-            document.getElementById('inventoryView').style.display = tab === 'inventory' ? 'block' : 'none';
-            if(tab === 'inventory') renderInventory();
-        }
-
-        function renderInventory() {
-            const grid = document.getElementById('inventoryGrid');
-            if (userInventory.length === 0) {
-                grid.innerHTML = '<div class="empty-inv">Ваш инвентарь пуст</div>';
-                return;
-            }
-            grid.innerHTML = '';
-            userInventory.forEach(itemKey => {
-                const itemData = items[itemKey] || { n: itemKey, i: items.m5.i };
-                const div = document.createElement('div');
-                div.className = 'inv-item';
-                div.innerHTML = <img src="${itemData.i}"><div>${itemData.n}</div>;
-                grid.appendChild(div);
-            });
-        }
-
-        function getRandomPrize(pool) {
-            let totalWeight = pool.reduce((sum, item) => sum + item.p, 0);
-            let random = Math.random() * totalWeight;
-            for (let i = 0; i < pool.length; i++) {
-                if (random < pool[i].p) return pool[i].id;
-                random -= pool[i].p;
-            }
-            return pool.id;
-        }
-
+          function selectCase(type, price) { activeCase = type; activePrice = price; document.getElementById('btnPrice').innerText = price; 
+                document.querySelectorAll('.case-card').forEach(c => c.classList.remove('active'));
+event.currentTarget.classList.add('active'); updatePreview(); }
+        function updatePreview() { const container = 
+  document.getElementById('previewItems'); container.innerHTML = ''; casePools[activeCase].forEach(slot => { const itemData =
+items[slot.id]; const div = document.createElement('div'); div.className = 'preview-item'; div.innerHTML =<img src="${itemData.i}"><div>${itemData.n}</div><div style="color:#718096;font-size:8px;margin-top:2px;">${slot.p}%</div>; container.appendChild(div); }); }
+        function switchTab(tab) { document.getElementById('tabCases').classList.toggle('active', tab === 'cases'); document.getElementById('tabInv').classList.toggle('active', tab === 'inventory'); document.getElementById('casesView').style.display = tab === 'cases' ? 'block' : 'none'; document.getElementById('inventoryView').style.display = tab === 'inventory' ? 'block' : 'none'; if(tab === 'inventory') renderInventory(); }
+        function renderInventory() { const grid = document.getElementById('inventoryGrid'); if (userInventory.length === 0) { grid.innerHTML = '<div class="empty-inv">Ваш инвентарь пуст</div>'; return; } grid.innerHTML = ''; userInventory.forEach(itemKey => { const itemData = items[itemKey]; const div =document.createElement('div'); div.className = 'inv-item'; div.innerHTML = <img src="${itemData.i}"><div>${itemData.n}</div>; grid.appendChild(div); }); }
+        function getRandomPrize(pool) { let totalWeight = pool.reduce((sum, item) => sum + item.p, 0); let random = Math.random() * totalWeight; for (let i = 0; i < pool.length; i++) { if (random < pool[i].p) return pool[i].id; random -= pool[i].p; } return pool.id; }
         function openCaseProcess() {
-            if (userBalance < activePrice) {
-                tg.showAlert("❌ Недостаточно Звёзд на балансе!");
-                return;
-            }
-            userBalance -= activePrice;
-            document.getElementById('balanceValue').innerText = userBalance;
-
-            const openBtn = document.getElementById('openBtn');
-            const wrapper = document.getElementById('rouletteWrapper');
-            const line = document.getElementById('rouletteLine');
-
-            openBtn.disabled = true;
-            wrapper.style.display = 'block';
-            line.innerHTML = '';
-            line.style.transition = 'none';
-            line.style.transform = 'translateX(0px)';
-
-            const itemWidth = 108;
-            const totalItems = 30;
-            const winnerIndex = 24;
-            let generatedKeys = [];
-
+            if (userBalance < activePrice) { tg.showAlert("❌ Недостаточно Звёзд на балансе!"); return; }
+            userBalance -= activePrice; document.getElementById('balanceValue').innerText = userBalance;
+            const openBtn = document.getElementById('openBtn'); const wrapper = document.getElementById('rouletteWrapper'); const line = document.getElementById('rouletteLine');
+            openBtn.disabled = true; wrapper.style.display = 'block'; line.innerHTML = ''; line.style.transition = 'none'; line.style.transform = 'translateX(0px)';
+            const itemWidth = 108; const totalItems = 30; const winnerIndex = 24; let generatedKeys = [];
             for (let i = 0; i < totalItems; i++) {
-                let rKey = getRandomPrize(casePools[activeCase]);
-                generatedKeys.push(rKey);
-                const itemData = items[rKey] || { n: rKey.replace('m',' ') + ' ⭐️', i: items.m5.i };
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'prize-item';
-                itemDiv.innerHTML = <img src="${itemData.i}"><div>${itemData.n}</div>;
-                line.appendChild(itemDiv);
+                let rKey = getRandomPrize(casePools[activeCase]); generatedKeys.push(rKey);
+                const itemData = items[rKey]; const itemDiv = document.createElement('div'); itemDiv.className = 'prize-item'; itemDiv.innerHTML = <img src="${itemData.i}"><div>${itemData.n}</div>; line.appendChild(itemDiv);
             }
-            const winningKey = generatedKeys[winnerIndex];
-            const viewWidth = wrapper.offsetWidth;
-            const targetX = -(winnerIndex * itemWidth) + (viewWidth / 2) - (itemWidth / 2);
-
+            const winningKey = generatedKeys[winnerIndex]; const viewWidth = wrapper.offsetWidth; const targetX = -(winnerIndex * itemWidth) + (viewWidth / 2) - (itemWidth / 2);
+            setTimeout(() => { line.style.transition = 'transform 4.5s cubic-bezier(0.15, 0.85, 0.15, 1)'; line.style.transform = translateX(${targetX}px); }, 50);
             setTimeout(() => {
-                line.style.transition = 'transform 4.5s cubic-bezier(0.15, 0.85, 0.15, 1)';
-                line.style.transform = translateX(${targetX}px);
-                setTimeout(() => {
-                openBtn.disabled = false;
-                const wonItem = items[winningKey];
-                if (wonItem.isMoney) {
-                    userBalance += wonItem.v;
-                    document.getElementById('balanceValue').innerText = userBalance;
-                    tg.showAlert(🎉 Барабан остановился! Вы выиграли: ${wonItem.n}. Звёзды зачислены на баланс!);
-                } else {
-                    userInventory.push(winningKey);
-                    tg.showAlert(🎉 Поздравляем! Вы выбили: ${wonItem.n}. Предмет отправлен в инвентарь.);
-                }
+                openBtn.disabled = false; const wonItem = items[winningKey];
+                if (wonItem.isMoney) { userBalance += wonItem.v; document.getElementById('balanceValue').innerText = userBalance; tg.showAlert(🎉 Барабан остановился! Вы выиграли: ${wonItem.n}. Звёзды зачислены на баланс!); }
+                else { userInventory.push(winningKey); tg.showAlert(🎉 Поздравляем! Вы выбили: ${wonItem.n}. Предмет отправлен в инвентарь.); }
             }, 4700);
         }
-
         updatePreview();
     </script>
 </body>
 </html>
-    
+                                                                                                                                                                                                                                                                   
+                                                                                                                                            
