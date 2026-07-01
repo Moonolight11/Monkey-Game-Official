@@ -1,84 +1,174 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Открытие Кейсов за Звёзды</title>
-    <!-- Подключаем официальный скрипт Telegram Web App -->
-    <script src="https://telegram.org"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #1a1a1a;
-            color: white;
-            text-align: center;
-            padding: 20px;
-            margin: 0;
-        }
-        .case-container {
-            margin-top: 50px;
-            border: 2px solid #e0a96d;
-            padding: 30px;
-            border-radius: 15px;
-            background: #2c2c2c;
-        }
-        .case-icon {
-            font-size: 80px;
-            margin-bottom: 20px;
-        }
-        .btn {
-            background-color: #f39c12;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
-        }
-        .btn:active {
-            transform: scale(0.98);
-        }
-        #result {
-            margin-top: 20px;
-            font-size: 22px;
-            font-weight: bold;
-            color: #2ecc71;
-        }
-    </style>
-</head>
-<body>
-
-    <h1>Испытай удачу! ⭐️</h1>
-    
-    <div class="case-container">
-        <div id="case-pic" class="case-icon">📦</div>
-        <button class="btn" onclick="openCase()">Открыть за 50 ⭐️</button>
-        <div id="result"></div>
-    </div>
-
-    <script>
-        // Инициализируем Telegram Web App
+<script>
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Расширяем приложение на весь экран телефона
+        tg.expand();
 
-        function openCase() {
-            const resultDiv = document.getElementById('result');
-            const casePic = document.getElementById('case-pic');
-            
-            resultDiv.innerText = "Кейс крутится...";
-            casePic.innerText = "🌀"; // Анимация вращения
-
-            // Симулируем открытие кейса (2 секунды)
-            setTimeout(() => {
-                const prizes = ["100 Звёзд! ⭐️", "Супер-Скин! ⚡️", "Ничего 😢", "500 Звёзд!! 🔥"];
-                const randomPrize = prizes[Math.floor(Math.random() * prizes.length)];
-                
-                casePic.innerText = "🎉";
-                resultDiv.innerText = "Вы выиграли: " + randomPrize;
-            }, 2000);
+        // Подгружаем реальные данные из Telegram, если они доступны
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            document.getElementById('userName').innerText = tg.initDataUnsafe.user.first_name;
+            if(tg.initDataUnsafe.user.photo_url) {
+                document.getElementById('userAvatar').src = tg.initDataUnsafe.user.photo_url;
+            }
         }
+
+        // Локальное состояние игрока
+        let userBalance = 1000;
+        let userInventory = [];
+        let activeCase = 'cry_monkey';
+        let activePrice = 59;
+
+        // База всех предметов (прямые ссылки на ваши картинки)
+        const items = {
+            m5:    { n: "5 Звезд",       i: "https://ibb.co", isMoney: true,  v: 5 },
+            m20:   { n: "20 Звезд",      i: "https://ibb.co", isMoney: true,  v: 20 },
+            m30:   { n: "30 Звезд",      i: "https://ibb.co", isMoney: true,  v: 30 },
+            m50:   { n: "50 Звезд",      i: "https://ibb.co", isMoney: true,  v: 50 },
+            m70:   { n: "70 Звезд",      i: "https://ibb.co", isMoney: true,  v: 70 },
+            m100:  { n: "100 Звезд",     i: "https://ibb.co", isMoney: true,  v: 100 },
+            m150:  { n: "150 Звезд",     i: "https://ibb.co", isMoney: true,  v: 150 },
+            m190:  { n: "190 Звезд",     i: "https://ibb.co", isMoney: true,  v: 190 },
+            m200:  { n: "200 Звезд",     i: "https://ibb.co", isMoney: true,  v: 200 },
+            m500:  { n: "500 Звезд",     i: "https://ibb.co", isMoney: true,  v: 500 },
+            nft1:  { n: "NFT Monkey 1",  i: "https://ibb.co" },
+            nft2:  { n: "NFT Monkey 2",  i: "https://ibb.co" },
+            nft3:  { n: "NFT Monkey 3",  i: "https://ibb.co" },
+            
+            roza:  { n: "Роза",          i: "https://ibb.co" },
+            buket: { n: "Букет цветов",   i: "https://ibb.co" },
+            raketa:{ n: "Ракета",        i: "https://ibb.co" },
+            
+            ice:   { n: "Мороженое",     i: "https://flaticon.com" },
+            torch: { n: "Факел",         i: "https://flaticon.com" },
+            noodle:{ n: "Лапша",         i: "https://flaticon.com" },
+            spin:  { n: "Free Spin",     i: "https://flaticon.com" }
+        };
+
+        // Настройка пулов выпадающих предметов и их точных шансов
+        const casePools = {
+            cry_monkey: [
+                { id: 'm5',    p: 13 }, { id: 'm20',   p: 10 }, { id: 'm30',   p: 9 }, { id: 'm70',   p: 7 },
+                { id: 'roza',  p: 13 }, { id: 'raketa', p: 3 }
+            ],
+            monkey_case: [
+                { id: 'ice',   p: 7 }, { id: 'torch',  p: 7 }, { id: 'noodle', p: 6 },
+                { id: 'm50',   p: 10 }, { id: 'm100',  p: 15 }, { id: 'm150',  p: 17 }, { id: 'm200',  p: 13 },
+                { id: 'nft1',  p: 2 }, { id: 'nft2',   p: 2 }, { id: 'nft3',   p: 2 },
+                { id: 'buket', p: 5 }
+            ],
+            hell_monkey: [
+                { id: 'spin',  p: 10 }, { id: 'ice',   p: 10 }, { id: 'torch',  p: 17 }, { id: 'noodle', p: 12 },
+                { id: 'm190',  p: 12 }, { id: 'm100',  p: 15 }, { id: 'm150',  p: 17 }, { id: 'm200',  p: 13 }, { id: 'm500',  p: 1 }
+            ]
+        };
+    function selectCase(type, price) {
+            activeCase = type;
+            activePrice = price;
+            document.getElementById('btnPrice').innerText = price;
+            document.querySelectorAll('.case-card').forEach(c => c.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            updatePreview();
+        }
+
+        function updatePreview() {
+            const container = document.getElementById('previewItems');
+            container.innerHTML = '';
+            casePools[activeCase].forEach(slot => {
+                const itemData = items[slot.id] || { n: slot.id.replace('m',' ') + ' ⭐️', i: items.m5.i };
+                const div = document.createElement('div');
+                div.className = 'preview-item';
+                div.innerHTML = <img src="${itemData.i}"><div>${itemData.n}</div><div style="color:#718096;font-size:8px;margin-top:2px;">${slot.p}%</div>;
+                container.appendChild(div);
+            });
+        }
+
+        function switchTab(tab) {
+            document.getElementById('tabCases').classList.toggle('active', tab === 'cases');
+            document.getElementById('tabInv').classList.toggle('active', tab === 'inventory');
+            document.getElementById('casesView').style.display = tab === 'cases' ? 'block' : 'none';
+            document.getElementById('inventoryView').style.display = tab === 'inventory' ? 'block' : 'none';
+            if(tab === 'inventory') renderInventory();
+        }
+
+        function renderInventory() {
+            const grid = document.getElementById('inventoryGrid');
+            if (userInventory.length === 0) {
+                grid.innerHTML = '<div class="empty-inv">Ваш инвентарь пуст</div>';
+                return;
+            }
+            grid.innerHTML = '';
+            userInventory.forEach(itemKey => {
+                const itemData = items[itemKey] || { n: itemKey, i: items.m5.i };
+                const div = document.createElement('div');
+                div.className = 'inv-item';
+                div.innerHTML = <img src="${itemData.i}"><div>${itemData.n}</div>;
+                grid.appendChild(div);
+            });
+        }
+
+        function getRandomPrize(pool) {
+            let totalWeight = pool.reduce((sum, item) => sum + item.p, 0);
+            let random = Math.random() * totalWeight;
+            for (let i = 0; i < pool.length; i++) {
+                if (random < pool[i].p) return pool[i].id;
+                random -= pool[i].p;
+            }
+            return pool.id;
+        }
+
+        function openCaseProcess() {
+            if (userBalance < activePrice) {
+                tg.showAlert("❌ Недостаточно Звёзд на балансе!");
+                return;
+            }
+            userBalance -= activePrice;
+            document.getElementById('balanceValue').innerText = userBalance;
+
+            const openBtn = document.getElementById('openBtn');
+            const wrapper = document.getElementById('rouletteWrapper');
+            const line = document.getElementById('rouletteLine');
+
+            openBtn.disabled = true;
+            wrapper.style.display = 'block';
+            line.innerHTML = '';
+            line.style.transition = 'none';
+            line.style.transform = 'translateX(0px)';
+
+            const itemWidth = 108;
+            const totalItems = 30;
+            const winnerIndex = 24;
+            let generatedKeys = [];
+
+            for (let i = 0; i < totalItems; i++) {
+                let rKey = getRandomPrize(casePools[activeCase]);
+                generatedKeys.push(rKey);
+                const itemData = items[rKey] || { n: rKey.replace('m',' ') + ' ⭐️', i: items.m5.i };
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'prize-item';
+                itemDiv.innerHTML = <img src="${itemData.i}"><div>${itemData.n}</div>;
+                line.appendChild(itemDiv);
+            }
+            const winningKey = generatedKeys[winnerIndex];
+            const viewWidth = wrapper.offsetWidth;
+            const targetX = -(winnerIndex * itemWidth) + (viewWidth / 2) - (itemWidth / 2);
+
+            setTimeout(() => {
+                line.style.transition = 'transform 4.5s cubic-bezier(0.15, 0.85, 0.15, 1)';
+                line.style.transform = translateX(${targetX}px);
+                setTimeout(() => {
+                openBtn.disabled = false;
+                const wonItem = items[winningKey];
+                if (wonItem.isMoney) {
+                    userBalance += wonItem.v;
+                    document.getElementById('balanceValue').innerText = userBalance;
+                    tg.showAlert(🎉 Барабан остановился! Вы выиграли: ${wonItem.n}. Звёзды зачислены на баланс!);
+                } else {
+                    userInventory.push(winningKey);
+                    tg.showAlert(🎉 Поздравляем! Вы выбили: ${wonItem.n}. Предмет отправлен в инвентарь.);
+                }
+            }, 4700);
+        }
+
+        updatePreview();
     </script>
 </body>
 </html>
+    
