@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Открытие Кейсов за Звёзды</title>
+    <!-- Подключаем официальный скрипт Telegram Web App -->
+    <script src="https://telegram.org"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .case-container {
+            margin-top: 50px;
+            border: 2px solid #e0a96d;
+            padding: 30px;
+            border-radius: 15px;
+            background: #2c2c2c;
+        }
+        .case-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background-color: #f39c12;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #2ecc71;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Испытай удачу! ⭐️</h1>
+    
+    <div class="case-container">
+        <div id="case-pic" class="case-icon">📦</div>
+        <button class="btn" onclick="openCase()">Открыть за 50 ⭐️</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Инициализируем Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Расширяем приложение на весь экран телефона
+
+        function openCase() {
+            const resultDiv = document.getElementById('result');
+            const casePic = document.getElementById('case-pic');
+            
+            resultDiv.innerText = "Кейс крутится...";
+            casePic.innerText = "🌀"; // Анимация вращения
+
+            // Симулируем открытие кейса (2 секунды)
+            setTimeout(() => {
+                const prizes = ["100 Звёзд! ⭐️", "Супер-Скин! ⚡️", "Ничего 😢", "500 Звёзд!! 🔥"];
+                const randomPrize = prizes[Math.floor(Math.random() * prizes.length)];
+                
+                casePic.innerText = "🎉";
+                resultDiv.innerText = "Вы выиграли: " + randomPrize;
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
